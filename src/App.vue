@@ -8,9 +8,14 @@
           </label>
 
           <input v-model="form.name"
+                 id="name"
                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                  type="text"
                  placeholder="Name">
+
+          <p v-if="showNameRequiredError" class="text-red-700 text-left text-sm mt-1">This field is required.</p>
+          <p v-else-if="showNameLengthError" class="text-red-700 text-left text-sm mt-1">This field should have 3 or more characters.</p>
+          <p v-else class="text-green-700 text-left text-sm mt-1">All good!</p>
         </div>
 
         <div class="w-2/3 px-3">
@@ -18,7 +23,8 @@
             Description
           </label>
 
-          <textarea v-model="form.description"
+          <textarea v-model="description"
+                    id="description"
                     rows="3"
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     placeholder="Description">
@@ -33,6 +39,7 @@
           </label>
 
           <input v-model="form.date"
+                 id="date"
                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                  type="date"
                  placeholder="Date">
@@ -44,6 +51,7 @@
           </label>
 
           <input v-model="form.start_time"
+                 id="start_time"
                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                  type="time"
                  placeholder="Start time">
@@ -55,28 +63,30 @@
           </label>
 
           <input v-model="form.end_time"
+                 id="end_time"
                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                  type="time"
                  placeholder="End time">
         </div>
       </div>
-
-      <br />
-      <button class="px-4 py-2 bg-blue-500 rounded text-white shadow hover:bg-blue-600">Create event</button>
+      <button class="block mx-auto px-4 py-2 rounded text-white mt-6"
+              :class="disabledClass"
+              :disabled="disableSubmit">Create event</button>
     </form>
 
-    <div v-for="event in events" :key="event.name" class="flex flex-wrap">
-      <div class="flex-1">{{ event.name }}</div>
-      <div class="flex-1">{{ event.description }}</div>
-      <div class="flex-1">{{ event.date }}</div>
-      <div class="flex-1">{{ event.start_time + ' - ' + event.end_time }}</div>
-    </div>
+    <event-list :events="events" @delete-event="deleteEvent" />
   </div>
 </template>
 
 <script>
+import EventList from "./components/EventList";
+
 export default {
   name: 'app',
+
+  components: {
+    EventList
+  },
 
   data() {
     return {
@@ -93,11 +103,33 @@ export default {
   },
 
   computed: {
-    requiredClass() {
-      if (this.form.name === 'Orkhan') return 'text-green-700';
+    description: {
+      get() {
+        return this.form.description
+      },
 
-      return ''
-    }
+      set(value) {
+        this.form.description = value
+      }
+    },
+
+    showNameRequiredError() {
+      return !this.form.name
+    },
+
+    showNameLengthError() {
+      return this.form.name.length < 3
+    },
+
+    disableSubmit() {
+      return this.showNameRequiredError || this.showNameMinimumLengthError
+    },
+
+    disabledClass() {
+      return this.disableSubmit
+              ? 'cursor-not-allowed bg-gray-300'
+              : 'bg-blue-500 hover:bg-blue-600 shadow'
+    },
   },
 
   methods: {
@@ -110,18 +142,11 @@ export default {
         start_time: '',
         end_time: '',
       }
+    },
+
+    deleteEvent(index) {
+      this.events.splice(index, 1)
     }
   }
 }
 </script>
-
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
